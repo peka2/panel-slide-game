@@ -37,6 +37,57 @@ function isSolved(board: Board) {
   return true
 }
 
+function solve(board: Board, size: number): Board[] | null {
+  const goal = Array.from({ length: size * size }, (_, i) =>
+    (i + 1) % (size * size)
+  ).join(',')
+  const start = board.join(',')
+  if (start === goal) return [board]
+  const queue: Board[] = [board]
+  const visited = new Set<string>([start])
+  const prev = new Map<string, string | null>()
+  prev.set(start, null)
+
+  while (queue.length) {
+    const current = queue.shift()!
+    const key = current.join(',')
+    if (key === goal) {
+      const path: Board[] = []
+      let k: string | null = key
+      while (k) {
+        path.push(k.split(',').map(Number))
+        k = prev.get(k) ?? null
+      }
+      return path.reverse()
+    }
+
+    const emptyIdx = current.indexOf(EMPTY)
+    const row = Math.floor(emptyIdx / size)
+    const col = emptyIdx % size
+    const moves = [
+      [row - 1, col],
+      [row + 1, col],
+      [row, col - 1],
+      [row, col + 1],
+    ]
+    for (const [r, c] of moves) {
+      if (r >= 0 && r < size && c >= 0 && c < size) {
+        const idx = r * size + c
+        const next = [...current]
+        next[emptyIdx] = next[idx]
+        next[idx] = EMPTY
+        const nextKey = next.join(',')
+        if (!visited.has(nextKey)) {
+          visited.add(nextKey)
+          prev.set(nextKey, key)
+          queue.push(next)
+        }
+      }
+    }
+  }
+  return null
+}
+
 function App() {
   const [boardSize, setBoardSize] = useState(4)
   const [board, setBoard] = useState<Board>(() => shuffleBoard(4))
@@ -44,6 +95,7 @@ function App() {
   const [startTime, setStartTime] = useState(Date.now())
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<number | null>(null)
+  const solveRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (isSolved(board)) {
@@ -79,8 +131,29 @@ function App() {
     })
   }
 
+  const autoSolve = () => {
+    if (boardSize !== 3 || solveRef.current) return
+    const path = solve(board, 3)
+    if (!path) return
+    let step = 1
+    solveRef.current = window.setInterval(() => {
+      setBoard(path[step])
+      step++
+      if (step >= path.length) {
+        if (solveRef.current) {
+          clearInterval(solveRef.current)
+          solveRef.current = null
+        }
+      }
+    }, 300)
+  }
+
   const reset = () => {
     setWon(false)
+    if (solveRef.current) {
+      clearInterval(solveRef.current)
+      solveRef.current = null
+    }
     setBoard(shuffleBoard(boardSize))
     setStartTime(Date.now())
     setElapsed(0)
@@ -89,6 +162,10 @@ function App() {
   const changeSize = (size: number) => {
     setBoardSize(size)
     setWon(false)
+    if (solveRef.current) {
+      clearInterval(solveRef.current)
+      solveRef.current = null
+    }
     setBoard(shuffleBoard(size))
     setStartTime(Date.now())
     setElapsed(0)
@@ -132,6 +209,14 @@ function App() {
         <div className="text-green-600 font-semibold animate-pulse">
           You solved it!
         </div>
+      )}
+      {boardSize === 3 && (
+        <button
+          onClick={autoSolve}
+          className="mt-2 px-4 py-2 rounded bg-green-700 text-white"
+        >
+          Solve
+        </button>
       )}
       <button
         onClick={reset}

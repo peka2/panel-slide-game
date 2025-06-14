@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './index.css'
 
 const EMPTY = 0
@@ -41,10 +41,25 @@ function App() {
   const [boardSize, setBoardSize] = useState(4)
   const [board, setBoard] = useState<Board>(() => shuffleBoard(4))
   const [won, setWon] = useState(false)
+  const [startTime, setStartTime] = useState(Date.now())
+  const [elapsed, setElapsed] = useState(0)
+  const timerRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (isSolved(board)) setWon(true)
+    if (isSolved(board)) {
+      setWon(true)
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
   }, [board])
+
+  useEffect(() => {
+    timerRef.current = window.setInterval(() => {
+      setElapsed(Date.now() - startTime)
+    }, 1000)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [startTime])
 
   const move = (index: number) => {
     const emptyIndex = board.indexOf(EMPTY)
@@ -64,12 +79,16 @@ function App() {
   const reset = () => {
     setWon(false)
     setBoard(shuffleBoard(boardSize))
+    setStartTime(Date.now())
+    setElapsed(0)
   }
 
   const changeSize = (size: number) => {
     setBoardSize(size)
     setWon(false)
     setBoard(shuffleBoard(size))
+    setStartTime(Date.now())
+    setElapsed(0)
   }
 
   return (
@@ -98,14 +117,19 @@ function App() {
             className={
               value === EMPTY
                 ? 'w-16 h-16 border border-gray-300 bg-gray-200'
-                : 'w-16 h-16 flex items-center justify-center bg-blue-500 text-white font-semibold rounded'
+                : 'w-16 h-16 flex items-center justify-center bg-blue-500 text-white font-semibold rounded transition-transform duration-300 hover:scale-105 active:scale-95 active:animate-bounce'
             }
           >
             {value !== EMPTY && value}
           </button>
         ))}
       </div>
-      {won && <div className="text-green-600 font-semibold">You solved it!</div>}
+      <div className="text-lg font-bold">Time: {Math.floor(elapsed / 1000)}s</div>
+      {won && (
+        <div className="text-green-600 font-semibold animate-pulse">
+          You solved it!
+        </div>
+      )}
       <button
         onClick={reset}
         className="mt-2 px-4 py-2 rounded bg-gray-800 text-white"

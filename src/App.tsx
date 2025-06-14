@@ -62,18 +62,21 @@ function App() {
   }, [startTime])
 
   const move = (index: number) => {
-    const emptyIndex = board.indexOf(EMPTY)
-    const row = Math.floor(index / boardSize)
-    const col = index % boardSize
-    const emptyRow = Math.floor(emptyIndex / boardSize)
-    const emptyCol = emptyIndex % boardSize
-    const distance = Math.abs(row - emptyRow) + Math.abs(col - emptyCol)
-    if (distance === 1) {
-      const newBoard = [...board]
-      newBoard[emptyIndex] = board[index]
-      newBoard[index] = EMPTY
-      setBoard(newBoard)
-    }
+    setBoard((prev) => {
+      const emptyIndex = prev.indexOf(EMPTY)
+      const row = Math.floor(index / boardSize)
+      const col = index % boardSize
+      const emptyRow = Math.floor(emptyIndex / boardSize)
+      const emptyCol = emptyIndex % boardSize
+      const distance = Math.abs(row - emptyRow) + Math.abs(col - emptyCol)
+      if (distance === 1) {
+        const newBoard = [...prev]
+        newBoard[emptyIndex] = prev[index]
+        newBoard[index] = EMPTY
+        return newBoard
+      }
+      return prev
+    })
   }
 
   const reset = () => {

@@ -25,5 +25,5 @@ npm run lint
 
 ## Gameplay
 
-Select the board size from the dropdown to choose between an easy 3x3 puzzle and a harder 4x4 puzzle. Click on a tile adjacent to the empty space to slide it. When all numbers are in order you win!
+The puzzle starts with the 3x3 board by default. Select the board size from the dropdown to choose between an easy 3x3 puzzle and a harder 4x4 puzzle. Click on a tile adjacent to the empty space to slide it. When all numbers are in order you win!
 

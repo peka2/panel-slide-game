@@ -89,8 +89,8 @@ function solve(board: Board, size: number): Board[] | null {
 }
 
 function App() {
-  const [boardSize, setBoardSize] = useState(4)
-  const [board, setBoard] = useState<Board>(() => shuffleBoard(4))
+  const [boardSize, setBoardSize] = useState(3)
+  const [board, setBoard] = useState<Board>(() => shuffleBoard(3))
   const [won, setWon] = useState(false)
   const [startTime, setStartTime] = useState(Date.now())
   const [elapsed, setElapsed] = useState(0)
